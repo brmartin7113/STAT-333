@@ -1,0 +1,214 @@
+---
+title: "STAT 333 - Lesson 4"
+author: "Clark"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Proving the sum of squares deconstruction:
+
+\vspace{5.in}
+
+Recall that the parameter that controls the relationship between $x_i$ and $y_i$ is $\beta_1$. So, often we want to understand whether there is indeed a relationships between the two variables. For instance, when we were looking at Bike time and Swim time we may want to know if Bike time is increasing do we also so a change in Swim time. The hypothesis we are testing then is:
+
+\vspace{.5in}
+
+From last lesson we argued that $\hat{\beta_1} \sim N(\beta,\frac{\sigma^2}{s_x^2(n-1)})$. So, we \textit{could} use:
+
+\vspace{.5in}
+
+as our test statistic. However that would require us to \textbf{know} $\sigma^2$. Instead, we will estimate $\sigma^2$ from $s^2=\frac{SSE}{n-2}$. Therefore we must use:
+
+\vspace{.5in}
+
+As a test statistic. Recall that a t distribution is similar to z distribution but with fatter tails
+
+```{r,out.width="50%",warning=F,message=F}
+library(tidyverse)
+
+# Define range for plotting
+x <- seq(-4, 4, length.out = 1000)
+
+# Create data for normal and t
+df <- data.frame(
+  x = rep(x, 2),
+  density = c(dnorm(x), dt(x, df = 5)),
+  Distribution = factor(rep(c("Standard Normal (Z)", "t Distribution (df=5)"), 
+                            each = length(x)))
+)
+
+# Plot
+ggplot(df, aes(x = x, y = density, color = Distribution,
+               linetype = Distribution)) +
+  geom_line(linewidth=1) +
+  theme_bw(base_size = 14) +
+  labs(
+    title = "Comparison of Standard Normal and t Distribution",
+    x = "Value",
+    y = "Density",
+    color = "Distribution"
+  ) +
+  scale_color_manual(values = c("steelblue", "darkred"))+
+  scale_linetype_manual(values = c("solid", "dashed"))
+```
+
+Let's look at the output from R for the Swim/Bike model:
+
+\vspace{1.in}
+
+```{r}
+
+
+ironman_data <- read.csv("https://data.scorenetwork.org/data/ironman_lake_placid_female_2022.csv")
+
+
+ironman_data <- ironman_data %>%
+  filter(Swim.Time<1000)
+
+x<-ironman_data$Bike.Time
+y<-ironman_data$Swim.Time
+n<-length(x)
+xbar<-mean(x)
+ybar<-mean(y)
+
+sx <- sqrt((n-1)^(-1)*sum((x-xbar)^2))
+sy <- sqrt((n-1)^(-1)*sum((y-ybar)^2))
+
+r_est <- 1/((n-1)*sx*sy)*sum((x-xbar)*(y-ybar))
+b1_hat <- r_est*(sy/sx)
+b0_hat <- ybar-b1_hat*xbar
+
+
+#Now we can calcuate
+
+yhat <- b0_hat + b1_hat * x
+resid <- y-yhat
+s_squared <- sum(resid^2)/(n-2)
+
+SE_b1_hat <- sqrt(s_squared)/(sx*sqrt(n-1))
+
+t_stat <- b1_hat/SE_b1_hat
+t_stat
+
+```
+
+Recall 
+
+So, to test our null hypothesis we would compare this to a t distribution with $n-2$ degrees of freedom
+
+```{r}
+pt(t_stat,n-2)
+```
+
+What's going on here?
+
+\vspace{1.in}
+
+Let's use R's built in function `lm`
+
+```{r}
+
+bike_swim<-lm(Swim.Time~Bike.Time,data=ironman_data)
+summary(bike_swim)
+
+```
+
+that sometimes I just want to give a range of plausable values of $\beta_1$ instead of formally conducting a hypothesis test. Here we can use:
+
+\vspace{.5in}
+
+We can calculate:
+
+```{r}
+alpha<-.05
+
+t_mult <- qt(1-alpha/2,n-2)
+
+b1_hat + t_mult*SE_b1_hat
+b1_hat - t_mult*SE_b1_hat
+
+
+```
+
+Or, again, we can use:
+
+```{r}
+confint(bike_swim)
+
+```
+
+Now, let's think about what this means?
+
+\vspace{1.in}
+
+Let's look at our fitted line:
+
+```{r,warning=F,message=F,out.width="50%"}
+ironman_data |>
+  ggplot(aes(x = Bike.Time, y = Swim.Time)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = TRUE, color = "blue") + 
+  theme_bw()
+
+```
+
+Note here I've turned the standard error to `TRUE`. Note that this is the standard error for the AVERAGE swim time for an individual who bikes at, say, 400 minutes (I'm guessing minutes? I really don't know the units...). Look at how many people, though, bike at 400 minutes and are outside of those bounds. If we mulitply these bounds by 1.96 these bounds are NOT saying 95\% of the people who bike 400 minutes will be within that region. Rather, again, it is saying we are 95\% certain that our AVERAGE is between those lines. This is subtle, but important, if we want to say, for an individual who bikes 400 minutes what will HER swim time be, this does not give us that. Rather we would need to use a \textbf{prediction} interval. Our book gives this formula:
+
+\vspace{1.in}
+
+If we look at our picture this sort of makes sense. So to form a prediction interval we need to account for the additiona deviation of the response from its mean
+
+```{r,warning=F,message=F,out.width="50%"}
+se_pred <- sqrt(s_squared)*sqrt(1+1/n+
+                                  (400-xbar)^2/((n-1)*sx^2))
+
+pred<-b0_hat+b1_hat*400
+pred+1.96*se_pred
+pred-1.96*se_pred
+
+ironman_data |>
+  ggplot(aes(x = Bike.Time, y = Swim.Time)) + 
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE, color = "blue") +
+  # Add prediction interval at x=400
+  geom_errorbar(aes(x = 400, ymin = 59.7, ymax = 95.7), 
+                width = 0.0, color = "red", size = 1) +
+  geom_point(aes(x = 400, y = (59.7 + 95.7)/2), 
+             color = "red", size = 3) +
+  annotate("text", x = 400, y = 97, 
+           label = "Prediction Interval", 
+           color = "red", vjust = -0.2) +
+  theme_bw()
+```
+
+We see this is way wider and now it contains, about, 95\% of the points.
+
+Recall that we have some assumptions in this model. If these assumptions aren't valid than, perhaps, the distribution of $\hat{\beta_1}$ is not normal. Or, perhaps a linear relationship doesn't actually exit between $x_i$ and $y_i$. The main things we will need to check in our model are:
+
+\vspace{3.in}
+
+Much of this will be done through examining the residuals. However, as we will see, it will be better for us to look at the \textit{standardized} or \textit{studentized} residuals. So we will delay this conversation until later. One thing we can look at now is whethere there are any unusual points. That is, whether we have any \textbf{outliers} or \textbf{high leverage points}. I think our book goes through a pretty good discussion of this on page 43 and I highly encourage you to read through this.
+
+I think the most important point, though, our book makes is the sentence on the bottom of page 44. \textbf{Simply because you can dramatically improve a regresiosn fit by omitting an observation does not mean you should aways do so!} Our goal is NOT to make the \textit{best} model. It is, rather, to understand what the data are saying and to communicate that to a wide range of audiences!
+
+Let's practice this a bit.
+
+Using the national life expectancy data from the course webpage, let's fit a linear regression model of LIFEEXP using the explanatory variable $x=FERTILITY$
+
+```{r,warning=F,message=F}
+#life_exp <- read_csv("https://instruction.bus.wisc.edu/jfrees/jfreesbooks/Regression%20Modeling/BookWebDec2010/CSVData/UNLifeExpectancy.csv")
+
+```
+
+
+\begin{itemize}
+\item The US has a FERTILITY rate of 2.0, determine the fitted life expectancy for the US.
+\item The island nation of Dominica did not report a FERTILITY rate and thus was not included in the regression. Suppose that its FERTILITY rate is 2.0. Provide a 95\% prediction interval for the life expectancy in Dominica.
+\item China has a FERTILITY rate of 1.7 and a life expectancy of 72.5. Determine the residual under the model. How many multiples of $s$ is this residual from zero.
+\item Suppose that your prior hypothesis is taht the FERTILITY slope is -6 and you want to test the null hypothesis that the slope has increased. Test this hypothesis at $\alpha=0.05$. Compute an approximate p value
+\end{itemize}
+
+

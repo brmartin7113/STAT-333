@@ -1,0 +1,198 @@
+---
+title: "ClassCode"
+output: html_document
+---
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse);
+library(rmarkdown);
+library(moments);
+```
+
+To get data from the "Book Data File. Use this code
+```{r}
+#read.csv(file.path(str_remove(getwd(), "Class Notes"), "/Book Data/NAME.csv"))
+```
+
+Here is the CAPM model being imported with this code
+```{r}
+#CAPM <- read.csv(file.path(str_remove(getwd(), "Class Notes"), "/Book Data/CAPM.csv"))
+```
+
+```{r eval=FALSE, include=FALSE}
+ironmanData <- read.csv("https://data.scorenetwork.org/data/ironman_lake_placid_female_2022.csv")
+
+ironmanData <- ironmanData %>%
+  filter(Swim.Time<1000)
+
+x <- ironmanData$Bike.Time
+y <- ironmanData$Swim.Time
+n <- length(x)
+xbar <- mean(x)
+ybar <- mean(y)
+sx <- sd(x)
+sy <- sd(y)
+
+rEst <- 1/((n-1)*sx*sy)*sum((x-xbar)*(y-ybar))
+b1Hat <- rEst*(sy/sx)
+b0Hat <- ybar - b1Hat*xbar
+
+yHat <- b0Hat + b1Hat*x
+resid <- y-yHat
+s_squared <- sum(resid^2)/(n-2)
+
+SEb1Hat <- sqrt(s_squared)/(sx*sqrt(n-1))
+
+tStat <- b1Hat/SEb1Hat
+tStat
+
+pt(tStat,n-2)
+```
+
+```{r eval=FALSE, include=FALSE}
+BikeSwim <- lm(Swim.Time ~ Bike.Time, data=ironmanData)
+summary(BikeSwim)
+
+alpha <- 0.05
+tMult <- qt(1-alpha/2,n-2)
+b1Hat+tMult*SEb1Hat
+b1Hat-tMult*SEb1Hat
+confint(BikeSwim)
+```
+
+
+```{r eval=FALSE, warning=FALSE, include=FALSE}
+ironmanData %>%
+  ggplot(aes(x = Bike.Time, y = Swim.Time))+
+  geom_point()+
+  geom_smooth(method = "lm", se = TRUE, color = "blue")+
+  theme_bw()
+```
+
+```{r eval=FALSE, include=FALSE}
+sePred <- sqrt(s_squared)*sqrt(1+1/n+(400-xbar)^2/((n-1)*sx^2))
+
+pred <- b0Hat+b1Hat*400
+pred+1.96*sePred
+```
+
+
+
+
+```{r eval=FALSE, include=FALSE}
+lifeExp<-read.csv(file.path(str_remove(getwd(), "/Class Notes"), "/Book Data/UNLifeExpectancy.csv"))
+
+lifeExpClean <- lifeExp %>%
+  filter(FERTILITY != "")
+
+lifeExp %>%
+  ggplot(aes(x=FERTILITY, y=LIFEEXP)) +
+  geom_point() +
+  labs(title= "Relationship between fertility rates and life expectancy",
+       x= "Fertility rates",
+       y= "Life Expectancy") +
+  geom_smooth(method="lm", se=FALSE, color="blue") +
+  theme_minimal()
+
+reglifeExp <- lm(LIFEEXP ~ FERTILITY, data=lifeExp)
+summary(reglifeExp)
+83.7381-5.2735*(2)
+
+#Now for the fun part :)
+
+Fertility <- lifeExpClean$FERTILITY
+LifeExp <- lifeExpClean$LIFEEXP
+n <- length(Fertility)
+FertilityBar <- mean(Fertility)
+LifeExpBar <- mean(LifeExp)
+sFertility <- sqrt(sum((Fertility-FertilityBar)^2)/(n-1))
+sLifeExp <- sqrt(sum((LifeExp-LifeExpBar)^2)/(n-1))
+rEst <- sum((Fertility-FertilityBar)*(LifeExp-LifeExpBar))/((n-1)*sFertility*sLifeExp)
+b1Hat <- rEst*(sLifeExp/sFertility)
+b0Hat <- LifeExpBar - b1Hat*FertilityBar
+
+#The Data Analysis
+LifeExpHat <- b0Hat + b1Hat * Fertility
+resid <- LifeExp - LifeExpHat
+sSquared <- sum(resid^2)/(n-2)
+
+#Prediction Interval Time:
+pred <- b0Hat + b1Hat*2
+sePred <- sqrt(sSquared)*sqrt(1+1/n+(2-FertilityBar)^2/((n-1)*sFertility^2))
+
+c(pred+1.96*sePred, pred-1.96*sePred)
+
+83.7381-5.2735*1.7
+72.5-74.7732
+sqrt(sSquared)
+-2.2732/9.1509
+
+confint(reglifeExp)
+cleanregLifeExp <- lm(LIFEEXP ~ FERTILITY, data = lifeExpClean)
+confint(cleanregLifeExp)
+
+SEb1Hat <- sqrt(sSquared)/(sFertility*sqrt(n-1))
+tStat <- (b1Hat-(-6))/SEb1Hat
+tStat
+1-pt(tStat, n-2)
+
+SEb0Hat <- sqrt(sSquared)/(sLifeExp*sqrt(n-1))
+b0TStat <- (b0Hat - 85)/SEb0Hat
+pt(b0TStat, n-2)
+qt(0.05, n-2)
+(b0Hat-85)/SEb0Hat
+
+qt(0.95,n-2)
+(b1Hat+5)/SEb1Hat
+```
+
+```{r}
+house.dat <- read.table("https://www.isi-stats.com/isi2/data/housing.txt", header=TRUE)
+house.dat <- house.dat %>%
+  mutate(price=price.1000) %>%
+  select(-price.1000)
+
+house.dat %>%
+  ggplot(aes(x = sqft, y = price)) + 
+  geom_point() + 
+  labs(title = "Housing Market",
+       xlab = "Square Footage",
+       ylab = "House Price")
+
+sqftLm <- lm(price ~ sqft, data = house.dat)
+summary(sqftLm)
+
+fit.house <- house.dat %>%
+  mutate(resids = sqftLm$residuals, preds=sqftLm$fitted.values)
+fit.house %>%
+  ggplot(aes(x=preds, y=resids, color=location)) +
+  geom_point()
+
+fit.house %>%
+  group_by(location) %>%
+  summarize(mean=mean(resids))
+
+fit.house %>%
+  group_by(location) %>%
+  summarize(mean=mean(sqft))
+```
+
+```{r}
+lotteryDat <- read.csv(paste0(str_remove(getwd(), "/Class Notes"), "/Book Data/WiscLottery.csv"))
+dim(lotteryDat)
+summary(lotteryDat)
+
+lotteryDat %>%
+  select(-ZIP) %>%
+  ggpairs(.)
+
+lot_lm <- lm(SALES ~ PERPERHH+MEDSCHYR+MEDHVL+PRCRENT+PRC55P+HHMEDAGE+MEDINC+POP, data = lotteryDat)
+summary(lot_lm)
+
+lot2_lm <- lm(SALES~MEDSCHYR+MEDHVL+POP, data = lotteryDat)
+summary(lot2_lm)
+
+lot3_lm <- lm(SALES ~ MEDSCHYR+POP, data= lotteryDat)
+summary(lot3_lm)
+cor(lotteryDat$MEDSCHYR, lotteryDat$MEDHVL)
+```

@@ -1,0 +1,82 @@
+---
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+Normal Distribution:
+
+$$
+f(x) = \frac{e^\frac{-(x-\mu)^2}{2\sigma^2}}{\sqrt{2\pi}\sigma}
+$$
+
+var \<- {stuff} is how to store data types into variables
+
+function(x, y, ...) is how to use functions with parameters x, y, ...
+
+```{r}
+resid <- c(-1, 0, 0, 0.5, -0.2, 0.7, 1, -0.4, -0.2, -0.05, 1.2)
+qqnorm(resid) 
+qqline(resid, col=2)
+```
+
+```{r}
+dat <- exp(rnorm(30))
+qqnorm(dat)
+qqline(dat, col=2)
+```
+
+```{r}
+data(ames, package = "modeldata")
+hist(ames$Sale_Price)
+```
+
+
+###Lesson 2 Questions
+```{r}
+
+getwd()
+AUTOBIsim <- read.csv(file.path(str_remove(getwd(), "Class Notes"), "Book Data/AUTOBIsim.csv"))
+```
+
+####1.)
+```{r}
+summary(AUTOBIsim$LOSS)
+```
+
+*Min is $10, Q1 is $630, Median is $2k, Q3 is $5,438, Max is $341,720. The mean is $5,682. Since the mean is greater than the median, we can assume that the loss amount distribution is skewed towards the right.*
+\
+
+####2.)
+```{r}
+hist(AUTOBIsim$LOSS)
+qqnorm(AUTOBIsim$LOSS)
+qqline(AUTOBIsim$LOSS)
+
+AUTOBIsim <- AUTOBIsim %>%
+  mutate(logLOSS = log(LOSS))
+
+hist(AUTOBIsim$logLOSS)
+qqnorm(AUTOBIsim$logLOSS)
+qqline(AUTOBIsim$logLOSS)
+```
+
+####3.)
+```{r}
+AUTOBIsim %>%
+  group_by(ATTORNEY) %>%
+  reframe(LOSS = summary(LOSS)[1:6])
+
+AUTOBIsim %>%
+  filter(ATTORNEY == 1) %>%
+  ggplot(aes(x=LOSS)) +
+  geom_boxplot()
+
+AUTOBIsim %>%
+  filter(ATTORNEY == 2) %>%
+  ggplot(aes(x=LOSS)) +
+  geom_boxplot()
+```

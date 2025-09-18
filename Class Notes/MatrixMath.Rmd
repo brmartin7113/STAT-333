@@ -1,0 +1,73 @@
+---
+title: "MatrixMath"
+output: html_document
+---
+```{r}
+library(tidyverse);
+data(mtcars)
+```
+
+```{r}
+A <- matrix(c(5, 2, 3, 4), byrow=TRUE, nrow=2, ncol=2)
+
+Ainv <- solve(A)
+```
+
+```{r}
+#?mtcars
+
+engineLm <- lm(mpg~vs, data=mtcars)
+x <- model.matrix(engineLm)
+x
+dim(x)
+
+betaHat <- function(X, y){
+  beta_val = solve(t(X) %*% X) %*% t(X) %*% y
+  return(beta_val)
+}
+
+Px <- function(X){
+  return(X %*% solve(t(X) %*% X) %*% t(X))
+}
+
+P <- Px(x)
+P
+
+BHat <- betaHat(x, mtcars$mpg)
+BHat
+
+P %*% mtcars$mpg
+
+mtcars$mpg - P %*% mtcars$mpg
+
+summary(engineLm)
+
+estimate = BHat
+SSE = sum((mtcars$mpg - x %*% estimate)^2)
+p = qr(x)$rank
+n = length(mtcars$mpg)
+hatSigmaSq = SSE/(n-p)
+seBeta = solve(t(x) %*% x)[,2]*hatSigmaSq
+estimate
+seBeta
+```
+
+```{r}
+nullLm <- lm(mpg ~ 1, data=mtcars)
+m <- model.matrix(nullLm)
+m
+
+betaHat(m, mtcars$mpg)
+Px(m)
+Px(m) %*% mtcars$mpg
+
+estimate = betaHat(m, mtcars$mpg)
+SSE = sum((mtcars$mpg - m%*%estimate)^2)
+p = qr(m)$rank
+n = length(mtcars$mpg)
+hatSigmaSq = SSE/(n-p)
+seBeta = solve(t(m)%*%m)*hatSigmaSq
+tstat = estimate/sqrt(seBeta)
+
+print(paste0("Estimate - ", formatC(estimate, digits = 2, format = "f"), "   Std. Error - ", formatC(sqrt(hatSigmaSq), digits = 2, format = "f"), "   t value - ", formatC(tstat, digits = 5, format = "f")))
+```

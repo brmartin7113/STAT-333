@@ -1,0 +1,98 @@
+---
+title: "Problem3.6"
+output: html_document
+---
+
+```{r include=FALSE}
+library(tidyverse);
+library(rmarkdown);
+library(knitr)
+```
+### Importing and Setting up the Data
+```{r}
+UNLifeExpectancy <- read.csv(file.path(str_remove(getwd(), "/Class Notes"), "/Book Data/UNLifeExpectancy.csv"))
+view(UNLifeExpectancy)
+UNLifeExpectancy <- UNLifeExpectancy %>%
+  mutate(lnHEALTH = log(PRIVATEHEALTH))
+```
+### Generating the Regression Model
+```{r}
+LifeExpReg <- lm(LIFEEXP ~ FERTILITY+PUBLICEDUCATION+lnHEALTH, data = UNLifeExpectancy)
+```
+
+### Summarizing the Regression Model
+
+```{r}
+summary(LifeExpReg)
+```
+
+$$\widehat{LifeExp}=85.6264-5.3993x_{Fertility}-0.1846x_{PublicEducation}-1.0296x_{logHealth}$$
+
+### Problems
+
+#### a.)
+
+Holding all other explanatory variables constant. For every 1% increase of a country's GDP being spent on public education, we can expect the average life expectancy of that country to decrease by ~0.2 years.
+
+#### b.)
+
+Holding all other explanatory variables constant. For every factor of $e$ increase in the country's health expenditures, we can expect the average life expectancy of that country to decrease by ~1 year.
+
+#### c.)
+$$
+H_O:\beta_{PublicEducation}=0 \newline
+H_A:\beta_{PublicEducation}\not=0
+$$
+If the minimum p-value from the 2-sided t-test is greater than $\alpha$=5%, then we fail to reject $H_O$. \
+However, if the minimum p-value from the 2-sided t-test is less than $\alpha$=5%, then we reject $H_O$\
+From the summary of the LifeExpReg, we can see that the p-value from the 2-sided t-test for Public Education was 49.3%. Since our p-value of 49.3% is greater than $\alpha$=5%, we fail to reject the null hypothesis. Therefore, there is no statistically significant evidence that $\beta_{PublicEducation}$ is different from 0.
+
+Here is the scatter plot of Public Education Expenditure compared to Life Expectancy:
+<center>
+```{r echo=FALSE, warning=FALSE}
+UNLifeExpectancy %>%
+  ggplot(aes(x=PUBLICEDUCATION, y=LIFEEXP)) +
+  geom_point() +
+  labs(title= "Scatterplot between Life Expectancy and Public Education Expenditure",
+       x= "Public Education Expenditure in %",
+       y= "Life Expectancy in years") +
+  theme_bw()
+```
+</center>
+
+
+### 3.3
+
+```{r}
+Dat <- matrix(c(-1, 2, 4, 6,
+                0, 0, 1, 1,
+                0, 1, 5, 8),
+              byrow = TRUE, nrow=3, ncol=4,
+              dimnames=list(c("xi1", "xi2", "yi"), c(1:4)))
+b <- c(0.15, 0.692, 2.88)
+H <- matrix(c(0.53846, -0.07692, -0.15385,
+              -0.07692, 0.15385, -0.69231,
+              -0.15385, -0.69231, 4.11538),
+            byrow=TRUE, nrow=3, ncol=3)
+s <- 1.373
+```
+
+#### a.)
+```{r}
+y <- Dat[3,]
+X <- rbind(rep(1, times=4),Dat[1:2,])
+```
+
+#### b.)
+```{r}
+t(X) %*% b
+```
+
+$\hat{y}_3=5.798$
+
+#### c.)
+```{r}
+H
+s * sqrt(4.11538)
+```
+$se(b_2)=2.785323$
