@@ -1,0 +1,34 @@
+---
+title: "Lesson9"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+SCF <- read.csv(file.path(str_remove(getwd(), "/Class Notes"), "/Book Data/TermLife.csv"))
+consumer <- SCF %>%
+  filter(FACE>0)
+```
+
+```{r}
+consumer <- consumer %>%
+  mutate(LNINCOME = log(INCOME),
+         LNFACE = log(FACE))
+
+consumerReg <- lm(LNFACE ~ LNINCOME+EDUCATION+NUMHH+as.factor(MARSTAT), data=consumer)
+summary(consumerReg)
+```
+
+```{r}
+consumer <- consumer %>%
+  mutate(MARSTATFAC=as.factor(MARSTAT))
+
+contrasts(consumer$MARSTATFAC)=contr.sum
+
+consumerReg2 <- lm(LNFACE ~ LNINCOME+EDUCATION+NUMHH+MARSTATFAC, data=consumer)
+
+summary(consumerReg2)
+```
