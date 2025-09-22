@@ -1,0 +1,67 @@
+---
+title: "Problem4.4"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+```
+
+### Initializing the Data
+```{r}
+AutoClaims <- read.csv(file.path(str_remove(getwd(), "/Class Notes"), "/Book Data/AutoClaims.csv"))
+AutoClaims <- AutoClaims %>%
+  mutate(LNPAID = log(PAID))
+```
+
+### Problem 4.4
+
+#### a.)
+```{r}
+AutoClaimsRega <- lm(LNPAID ~ AGE, data = AutoClaims)
+
+summary(AutoClaimsRega)
+```
+
+$$
+H_0: \beta_{Age} = 0 \\
+H_A: \beta_{Age} \not= 0
+$$
+If the minimum p-value from the two-sided t-test for $\beta_{Age}$ is less than $\alpha=0.05$, then we have statistically significant evidence to reject the null hypothesis.
+
+Since the minimum p-value from the two-sided t-test for $\beta_{Age}=0.0027$ is less than $\alpha=0.05$. We reject the null hypothesis. This means there is statistically significant evidence that Age is a good predictor for LNPAID.
+
+```{r}
+AutoClaims %>%
+  ggplot(aes(x=AGE, y=LNPAID)) +
+  geom_point() +
+  theme_minimal() +
+  labs(title= "Scatter-plot between AGE and LNPAID",
+       x= "AGE in years",
+       y= "LNPAID in log($$)") +
+  geom_smooth(method="lm", se=FALSE, col="blue")
+```
+
+While AGE is a statistically significant predictor for LNPAID. The goodness of fit between AGE and LNPAID seems very poor based on $\hat\beta_{Age}$ and $R^2$ values. With $R^2=0.001329$ and $\hat\beta_{Age}=-0.003658$. We can say that there is not a strong relationship between AGE and LNPAID.
+
+#### b.)
+```{r}
+AutoClaimsRegb <- lm(LNPAID ~ CLASS, data=AutoClaims)
+
+summary(AutoClaimsRegb)
+```
+
+##### i.)
+The point estimate for the LNPAID of claims for the class C7 appears to be $6.940938-0.039775=6.901163$
+
+##### ii.)
+
+##### iii.)
+
+#### c.)
+```{r}
+AutoClaimsRegc <- lm(LNPAID ~ AGE+GENDER+STATE+CLASS, data = AutoClaims)
+
+summary(AutoClaimsRegc)
+anova(AutoClaimsRegc)
+```
