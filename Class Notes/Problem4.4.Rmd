@@ -1,6 +1,8 @@
 ---
 title: "Problem4.4"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r}
@@ -49,14 +51,28 @@ While AGE is a statistically significant predictor for LNPAID. The goodness of f
 AutoClaimsRegb <- lm(LNPAID ~ CLASS, data=AutoClaims)
 
 summary(AutoClaimsRegb)
+
+AutoClaimsRegb2 <- lm(LNPAID ~ 0+CLASS, data=AutoClaims)
+summary(AutoClaimsRegb2)
 ```
 
 ##### i.)
 The point estimate for the LNPAID of claims for the class C7 appears to be $6.940938-0.039775=6.901163$
 
 ##### ii.)
+```{r}
+-0.039775 + c(-1, 1)*-0.748*0.053191
+-0.04 + c(-1,1)*-0.75*0.05
+```
+
+```{r}
+confint.lm(AutoClaimsRegb, 0.95)
+```
 
 ##### iii.)
+```{r}
+exp(-0.039775 + c(-1, 1)*-0.748*0.053191)
+```
 
 #### c.)
 ```{r}
@@ -64,4 +80,35 @@ AutoClaimsRegc <- lm(LNPAID ~ AGE+GENDER+STATE+CLASS, data = AutoClaims)
 
 summary(AutoClaimsRegc)
 anova(AutoClaimsRegc)
+
+AutoClaimsRegc2 <- lm(LNPAID~AGE+GENDER+STATE, data=AutoClaims)
+anova(AutoClaimsRegc2, AutoClaimsRegc)
 ```
+
+##### i.)
+$$
+H_0: \beta_{Gender}=0 \\
+H_A: \beta_{Gender}\not=0
+$$
+If the F-test of Gender is less than $\alpha=0.05$, then we reject the null hypothesis
+
+Since the F-test yielded a p-value of 0.1759 and is greater than $\alpha=0.05$. We fail to reject the null hypothesis. This means there is no statistically significant evidence that Gender is a good predictor.
+
+##### ii.)
+$$
+H_0: \beta_{CLASS}=0 \\
+H_A: \beta_{CLASS}\not=0
+$$
+
+If the F-test of Class is less than $\alpha=0.05$, then we reject the null hypothesis
+
+Since the F-test yielded a p-value of 0.0236 and is less than $\alpha=0.05$. We reject the null hypothesis. This means there is statistically significant evidence that Class is a good predictor.
+
+##### iii.)
+```{r}
+6.974923-0.003021*60+0.038953+0.098538-0.021854
+exp(6.974923-0.003021*60+0.038953+0.098538-0.021854)
+```
+
+##### iv.)
+The coefficient for someone designated in the class C7 is -0.021854. This means that holding all other variables constant, someone designated the class C7 pays -0.021854 log dollars less than someone designated the class C1.

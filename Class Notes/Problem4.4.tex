@@ -1,0 +1,435 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Problem4.4},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Problem4.4}
+\author{}
+\date{\vspace{-2.5em}}
+
+\begin{document}
+\maketitle
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(tidyverse)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## -- Attaching core tidyverse packages ------------------------ tidyverse 2.0.0 --
+## v dplyr     1.1.4     v readr     2.1.5
+## v forcats   1.0.0     v stringr   1.5.2
+## v ggplot2   4.0.0     v tibble    3.3.0
+## v lubridate 1.9.4     v tidyr     1.3.1
+## v purrr     1.1.0     
+## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()
+## i Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+\end{verbatim}
+
+\subsubsection{Initializing the Data}\label{initializing-the-data}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{AutoClaims }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\FunctionTok{file.path}\NormalTok{(}\FunctionTok{str\_remove}\NormalTok{(}\FunctionTok{getwd}\NormalTok{(), }\StringTok{"/Class Notes"}\NormalTok{), }\StringTok{"/Book Data/AutoClaims.csv"}\NormalTok{))}
+\NormalTok{AutoClaims }\OtherTok{\textless{}{-}}\NormalTok{ AutoClaims }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{LNPAID =} \FunctionTok{log}\NormalTok{(PAID))}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{Problem 4.4}\label{problem-4.4}
+
+\paragraph{a.)}\label{a.}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{AutoClaimsRega }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(LNPAID }\SpecialCharTok{\textasciitilde{}}\NormalTok{ AGE, }\AttributeTok{data =}\NormalTok{ AutoClaims)}
+
+\FunctionTok{summary}\NormalTok{(AutoClaimsRega)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = LNPAID ~ AGE, data = AutoClaims)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -4.7475 -0.6927 -0.0431  0.7101  4.1238 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)  7.189060   0.078865  91.157   <2e-16 ***
+## AGE         -0.003658   0.001219  -3.001   0.0027 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 1.07 on 6771 degrees of freedom
+## Multiple R-squared:  0.001329,   Adjusted R-squared:  0.001181 
+## F-statistic: 9.007 on 1 and 6771 DF,  p-value: 0.002699
+\end{verbatim}
+
+\[
+H_0: \beta_{Age} = 0 \\
+H_A: \beta_{Age} \not= 0
+\] If the minimum p-value from the two-sided t-test for \(\beta_{Age}\)
+is less than \(\alpha=0.05\), then we have statistically significant
+evidence to reject the null hypothesis.
+
+Since the minimum p-value from the two-sided t-test for
+\(\beta_{Age}=0.0027\) is less than \(\alpha=0.05\). We reject the null
+hypothesis. This means there is statistically significant evidence that
+Age is a good predictor for LNPAID.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{AutoClaims }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{AGE, }\AttributeTok{y=}\NormalTok{LNPAID)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title=} \StringTok{"Scatter{-}plot between AGE and LNPAID"}\NormalTok{,}
+       \AttributeTok{x=} \StringTok{"AGE in years"}\NormalTok{,}
+       \AttributeTok{y=} \StringTok{"LNPAID in log($$)"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_smooth}\NormalTok{(}\AttributeTok{method=}\StringTok{"lm"}\NormalTok{, }\AttributeTok{se=}\ConstantTok{FALSE}\NormalTok{, }\AttributeTok{col=}\StringTok{"blue"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## `geom_smooth()` using formula = 'y ~ x'
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{Problem4.4_files/figure-latex/unnamed-chunk-4-1.pdf}}
+
+While AGE is a statistically significant predictor for LNPAID. The
+goodness of fit between AGE and LNPAID seems very poor based on
+\(\hat\beta_{Age}\) and \(R^2\) values. With \(R^2=0.001329\) and
+\(\hat\beta_{Age}=-0.003658\). We can say that there is not a strong
+relationship between AGE and LNPAID.
+
+\paragraph{b.)}\label{b.}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{AutoClaimsRegb }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(LNPAID }\SpecialCharTok{\textasciitilde{}}\NormalTok{ CLASS, }\AttributeTok{data=}\NormalTok{AutoClaims)}
+
+\FunctionTok{summary}\NormalTok{(AutoClaimsRegb)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = LNPAID ~ CLASS, data = AutoClaims)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -4.7002 -0.6912 -0.0437  0.7128  4.1009 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)  6.940938   0.039699 174.838   <2e-16 ***
+## CLASSC11     0.010564   0.050696   0.208   0.8349    
+## CLASSC1A    -0.075432   0.128202  -0.588   0.5563    
+## CLASSC1B     0.057420   0.065380   0.878   0.3798    
+## CLASSC1C    -0.154707   0.178007  -0.869   0.3848    
+## CLASSC2     -0.139442   0.142595  -0.978   0.3282    
+## CLASSC6     -0.015057   0.053217  -0.283   0.7772    
+## CLASSC7     -0.039775   0.053191  -0.748   0.4546    
+## CLASSC71     0.012730   0.050887   0.250   0.8025    
+## CLASSC72     0.241716   0.122626   1.971   0.0487 *  
+## CLASSC7A     0.122755   0.108174   1.135   0.2565    
+## CLASSC7B     0.131512   0.056956   2.309   0.0210 *  
+## CLASSC7C     0.302596   0.125307   2.415   0.0158 *  
+## CLASSF1      0.062962   0.202561   0.311   0.7559    
+## CLASSF11    -0.136891   0.173726  -0.788   0.4307    
+## CLASSF6     -0.030546   0.094148  -0.324   0.7456    
+## CLASSF7     -0.363874   0.144807  -2.513   0.0120 *  
+## CLASSF71    -0.005476   0.117810  -0.046   0.9629    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 1.07 on 6755 degrees of freedom
+## Multiple R-squared:  0.005048,   Adjusted R-squared:  0.002544 
+## F-statistic: 2.016 on 17 and 6755 DF,  p-value: 0.00786
+\end{verbatim}
+
+\subparagraph{i.)}\label{i.}
+
+The point estimate for the LNPAID of claims for the class C7 appears to
+be \(6.940938-0.039775=6.901163\)
+
+\subparagraph{ii.)}\label{ii.}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\SpecialCharTok{{-}}\FloatTok{0.039775} \SpecialCharTok{+} \FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{)}\SpecialCharTok{*{-}}\FloatTok{0.748}\SpecialCharTok{*}\FloatTok{0.053191}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1]  0.000011868 -0.079561868
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\SpecialCharTok{{-}}\FloatTok{0.04} \SpecialCharTok{+} \FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{)}\SpecialCharTok{*{-}}\FloatTok{0.75}\SpecialCharTok{*}\FloatTok{0.05}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] -0.0025 -0.0775
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{confint.lm}\NormalTok{(AutoClaimsRegb, }\FloatTok{0.95}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##      2.5 % 97.5 %
+\end{verbatim}
+
+\subparagraph{iii.)}\label{iii.}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{exp}\NormalTok{(}\SpecialCharTok{{-}}\FloatTok{0.039775} \SpecialCharTok{+} \FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{)}\SpecialCharTok{*{-}}\FloatTok{0.748}\SpecialCharTok{*}\FloatTok{0.053191}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 1.0000119 0.9235209
+\end{verbatim}
+
+\paragraph{c.)}\label{c.}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{AutoClaimsRegc }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(LNPAID }\SpecialCharTok{\textasciitilde{}}\NormalTok{ AGE}\SpecialCharTok{+}\NormalTok{GENDER}\SpecialCharTok{+}\NormalTok{STATE}\SpecialCharTok{+}\NormalTok{CLASS, }\AttributeTok{data =}\NormalTok{ AutoClaims)}
+
+\FunctionTok{summary}\NormalTok{(AutoClaimsRegc)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = LNPAID ~ AGE + GENDER + STATE + CLASS, data = AutoClaims)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -4.7266 -0.6802 -0.0433  0.7072  4.1809 
+## 
+## Coefficients:
+##                Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)    6.974923   0.140144  49.770  < 2e-16 ***
+## AGE           -0.003021   0.001690  -1.787 0.073914 .  
+## GENDERM        0.038953   0.026907   1.448 0.147747    
+## STATESTATE 02  0.098538   0.089280   1.104 0.269765    
+## STATESTATE 03  0.006302   0.101050   0.062 0.950272    
+## STATESTATE 04  0.019266   0.093712   0.206 0.837118    
+## STATESTATE 06  0.283853   0.094105   3.016 0.002568 ** 
+## STATESTATE 07  0.076593   0.106361   0.720 0.471475    
+## STATESTATE 10  0.181802   0.105448   1.724 0.084739 .  
+## STATESTATE 11  0.172272   0.365574   0.471 0.637487    
+## STATESTATE 12  0.388006   0.108333   3.582 0.000344 ***
+## STATESTATE 13  0.188491   0.111980   1.683 0.092371 .  
+## STATESTATE 14  0.068141   0.116720   0.584 0.559373    
+## STATESTATE 15  0.065570   0.086624   0.757 0.449110    
+## STATESTATE 17  0.199398   0.096914   2.057 0.039680 *  
+## CLASSC11       0.055573   0.051695   1.075 0.282410    
+## CLASSC1A      -0.110591   0.128238  -0.862 0.388506    
+## CLASSC1B       0.022671   0.066388   0.341 0.732740    
+## CLASSC1C      -0.160355   0.178056  -0.901 0.367842    
+## CLASSC2       -0.183935   0.142784  -1.288 0.197719    
+## CLASSC6        0.057560   0.058767   0.979 0.327395    
+## CLASSC7       -0.021854   0.054531  -0.401 0.688605    
+## CLASSC71       0.024622   0.053049   0.464 0.642569    
+## CLASSC72       0.260057   0.123451   2.107 0.035192 *  
+## CLASSC7A       0.119315   0.108879   1.096 0.273183    
+## CLASSC7B       0.124196   0.059098   2.102 0.035634 *  
+## CLASSC7C       0.299023   0.126300   2.368 0.017934 *  
+## CLASSF1        0.130054   0.202380   0.643 0.520491    
+## CLASSF11      -0.058684   0.174394  -0.337 0.736503    
+## CLASSF6        0.068612   0.098270   0.698 0.485079    
+## CLASSF7       -0.309974   0.145271  -2.134 0.032898 *  
+## CLASSF71       0.029459   0.118848   0.248 0.804239    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 1.066 on 6741 degrees of freedom
+## Multiple R-squared:  0.01365,    Adjusted R-squared:  0.009113 
+## F-statistic: 3.009 on 31 and 6741 DF,  p-value: 4.354e-08
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{anova}\NormalTok{(AutoClaimsRegc)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Analysis of Variance Table
+## 
+## Response: LNPAID
+##             Df Sum Sq Mean Sq F value    Pr(>F)    
+## AGE          1   10.3 10.3202  9.0795  0.002595 ** 
+## GENDER       1    2.1  2.0825  1.8321  0.175923    
+## STATE       12   59.0  4.9197  4.3283 6.786e-07 ***
+## CLASS       17   34.6  2.0348  1.7902  0.023610 *  
+## Residuals 6741 7662.2  1.1367                      
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\subparagraph{i.)}\label{i.-1}
+
+\[
+H_0: \beta_{Gender}=0 \\
+H_A: \beta_{Gender}\not=0
+\] If the F-test of Gender is less than \(\alpha=0.05\), then we reject
+the null hypothesis
+
+Since the F-test yielded a p-value of 0.1759 and is greater than
+\(\alpha=0.05\). We fail to reject the null hypothesis. This means there
+is no statistically significant evidence that Gender is a good
+predictor.
+
+\subparagraph{ii.)}\label{ii.-1}
+
+\[
+H_0: \beta_{CLASS}=0 \\
+H_A: \beta_{CLASS}\not=0
+\]
+
+If the F-test of Class is less than \(\alpha=0.05\), then we reject the
+null hypothesis
+
+Since the F-test yielded a p-value of 0.0236 and is less than
+\(\alpha=0.05\). We reject the null hypothesis. This means there is
+statistically significant evidence that Class is a good predictor.
+
+\subparagraph{iii.)}\label{iii.-1}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{exp}\NormalTok{(}\FloatTok{6.974923{-}0.003021}\SpecialCharTok{*}\DecValTok{60}\FloatTok{+0.038953+0.098538{-}0.021854}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 1001.546
+\end{verbatim}
+
+\subparagraph{iv.)}\label{iv.}
+
+The coefficient for someone designated in the class C7 is -0.021854.
+This means that holding all other variables constant, someone designated
+the class C7 pays -0.021854 log dollars less than someone designated the
+class C1.
+
+\end{document}
