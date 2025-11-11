@@ -1,0 +1,87 @@
+---
+title: "BrockMartinLab1"
+output: pdf_document
+editor_options:
+  markdown:
+    wrap: 72
+    size: 12
+    font: "Times New Roman"
+---
+
+```{r include=FALSE}
+library(tidyverse)
+library(GGally)
+library(tinytex)
+library(MASS)
+library(stats)
+```
+
+# Memorandum
+
+A certain winery has reached out to us to do statistical analysis on what makes a wine high-quality. The winery has given us specific variables to use during this analysis. These variables include: the clarity, aroma, flavor, body, and oakiness of the wine, as well as the region the wine was produced in.
+
+To start off simple, the winery requested a full model to predict a wine's quality with all of the variables mentioned above. After running a multiple linear-regression model from *R Code 02*. We were able to predict the quality of a wine with these specific characteristics. These characteristics involved a clarity of 0.9, an aroma of 4.2, a flavor of 4, a body of ~4.66, an oakiness of 4.7, and created inside Region 2. The predicted quality of this particular wine comes out to be ~9.63. 
+
+The Winery also wanted to figure out which factors impacted the quality of a certain wine the most. Looking at *Figure 01*, we can see that Quality seems to be impacted by the variables Aroma, Body, Flavor, and Region. Though each of these explanatory variables have some co-linearity with each other. Not to mention that in *R Code 02*, Aroma and Body themselves do not appear to have a significant relationship with the quality of wine. Instead of manually generating every combination of multiple linear-regression models. We use a forward selection process to generate a more accurate multiple linear-regression model that uses less variables. See *R Code 03* to see the code used to generate this model. From *R Code 04*, we can see that there are interaction terms between Flavor and Region. That is to be expected since Flavor and Region has some co-linearity between them as indicated in *Figure 01*. We also see that Aroma and Body are not included in this new model. Which was foreseen from *R Code 02* with there being no significant relationship between them and the quality of the wine.
+
+When comparing the forward model to other models created. Specifically the original model from *R Code 02* and a new full model with the Flavor-Region interaction terms in *R Code 05*. We see that the forward model from *R Code 04* has the highest ${R_A}^2=0.9154$ compared to the original's ${R_A}^2=0.9033$ and the full interaction model's ${R_A}^2=0.9128$. ${R_A}^2$ is the adjusted r-squared value that is used to determine the variation of a response explained by the data. So we can conclude that the new model from forward selection does a better job at explaining the variability in Quality than the other two full models created.
+
+To answer the winery's question on which variables have the most impact on the quality of wine. Key variables such as Flavor and Region are extremely important. In fact, from the forward model in *R Code 04*. We can see that the base quality of a wine produced in Region 1 is already ~6.1. However, if the wine was produced in Region 3. We can expect the base quality of that wine produced there to be ~10.2. Even better than the initial predicted wine's quality of ~9.63 from *R Code 02*. Not to mention that Flavor has not yet been considered in the forward model. Where the wine's quality produced in Region 3 is expected to increase by ~0.8 for every 1 unit increase in the Flavor score of that wine. To put this into perspective, taking the initial prediction values of Flavor = 4 and being produced in Region 3. We can predict the quality of that wine to be ~13.4. A much higher quality wine can be produced when considering only Flavor and Region than considering all variables together.
+
+In conclusion. The winery should focus on creating a wine in Region 3 that has a high flavor score above all else. 
+
+\newpage
+
+# R Code & Figures
+
+## R Code 01
+
+```{r}
+#This is the initialization of the Wine Data
+WineData <- read.csv(
+  file.path(
+    str_remove(getwd(), "/Class Notes"),
+    "Book Data/Wine.csv"),
+  )
+```
+
+## R Code 02
+
+```{r}
+#The creation of the MLR and the estimation of Quality
+WineReg <- lm(Quality ~ Clarity+Aroma+Flavor+Body+Oakiness+as.factor(Region), data=WineData)
+summary(WineReg)
+estimationMatrix <- c(1, 0.9, 4.2, 4, mean(WineData$Body), 4.7, 1, 0)
+estimationMatrix
+betaHat <- coef(WineReg)
+estimationMatrix %*% betaHat
+```
+## Figure 01
+
+```{r}
+#The creation of the scatter-correlation plots
+ggpairs(WineData)
+```
+
+## R Code 03
+
+```{r echo=TRUE, results='hide'}
+#The generation of a better model to predict Quality through forward selection
+fullModel <- lm(Quality ~ (Clarity+Aroma+Flavor+Body+Oakiness+as.factor(Region))^2, data=WineData)
+nullModel <- lm(Quality ~ 1, data=WineData)
+
+forwardModel <- stepAIC(nullModel, direction="forward", scope=formula(fullModel))
+```
+
+## R Code 04
+```{r}
+#The summary of the better model
+summary(forwardModel)
+```
+
+## R Code 05
+```{r}
+#Full model with the Flavor-Region Interaction Term
+fullModelInt <- lm(Quality ~ Clarity+Aroma+Body+Flavor+Oakiness+as.factor(Region) +Flavor:as.factor(Region), data=WineData)
+summary(fullModelInt)
+```

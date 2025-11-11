@@ -1,0 +1,91 @@
+---
+title: "Problem11.9"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+horse<-read_csv("https://instruction.bus.wisc.edu/jfrees/jfreesbooks/Regression%20Modeling/BookWebDec2010/CSVData/HKHorse.csv")
+```
+
+```{r}
+horse %>%
+  ggplot(aes(x=WIN, y=FINISH))+
+  geom_point()+
+  scale_x_continuous(name="WIN %", limits=c(0,1))
+```
+
+### c.)
+
+```{r}
+horse%>%group_by(FINISH)%>%
+  summarise(min=summary(WIN)[1],
+            Q1=summary(WIN)[2],
+            median=summary(WIN)[3],
+            Q3=summary(WIN)[5],
+            max=summary(WIN)[6],
+            avg=summary(WIN)[4],
+            sd=sd(WIN),
+            num=length(WIN)
+            )
+```
+Because there are less horses that win the race, their averages are a bit inflated. With the horses that lose, they were already predicted to lose more often than win.
+
+### d.)
+```{r}
+horseLM <- lm(FINISH~WIN, data=horse)
+summary(horseLM)
+```
+
+#### i.)
+From the summary above, we can see that WIN is a significant predictor to the FINISH variable.
+
+#### ii.)
+$$H_O: \text{The linear model does not fits the data well}$$
+
+$$H_A: \text{The linear model does fits the data well}$$
+
+```{r}
+testStat <- sum((horse$FINISH-fitted.values(horseLM))^2/fitted.values(horseLM))
+testStat
+1-pchisq(testStat, length(horse$FINISH)-2)
+```
+Since the p-value from the chi-square test of 0.9758 is greater than even an $\alpha=0.1$. We fail to reject the null hypothesis. This means there is no statistically significant evidence that the linear model fits the data well.
+
+#### iii.)
+It is not possible for the fitted values to lie outside the interval (0,1]. Since the range of fitted values are between [0.008, 0.884].
+
+### e.)
+```{r}
+horseGLM <- glm(FINISH~WIN, family=binomial(link="logit"), data=horse)
+summary(horseGLM)
+```
+WIN is still a significant predictor for a horse Winning the race.
+
+#### i.)
+```{r}
+pointEstimates <- cbind(rep(1, times=5), c(0, 0.01, 0.05, 0.10, 1))
+fittedLM <- pointEstimates %*% coef(horseLM)
+fittedLM
+fittedGLM <- exp(pointEstimates %*% coef(horseGLM))/(1+exp(pointEstimates %*% coef(horseGLM)))
+fittedGLM
+```
+
+#### ii.)
+```{r}
+as_tibble(cbind(fitted.values(horseLM), fitted.values(horseGLM))) %>%
+  ggplot(aes(x=V1, y=V2))+
+  geom_point()+
+  scale_x_continuous(name="Fitted values from LM", limit=c(0,1))+
+  scale_y_continuous(name="Fitted values from GLM", limit=c(0,1))
+```
+
+```{r}
+fittedLM2 <- predict(horseLM)
+plot(fittedLM2, horse$FINISH)
+fittedGLM2 <- predict(horseGLM, type="response")
+plot(fittedGLM2, horse$FINISH)
+```

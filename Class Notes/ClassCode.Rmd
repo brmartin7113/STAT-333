@@ -196,3 +196,13 @@ lot3_lm <- lm(SALES ~ MEDSCHYR+POP, data= lotteryDat)
 summary(lot3_lm)
 cor(lotteryDat$MEDSCHYR, lotteryDat$MEDHVL)
 ```
+
+```{r}
+Y <- sample(x=c(0,1), size=10, replace=TRUE)
+X <- sample(x=c(1:10), size=10, replace=FALSE)
+
+data <- tibble(Y, X)
+  ggplot(rpart::kyphosis, aes(Age, as.numeric(Kyphosis)-1))+
+  geom_jitter(height=0.05)+
+  geom_smooth()
+```

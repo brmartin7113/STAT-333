@@ -1,0 +1,13 @@
+---
+title: "BrockMartinTakeHomeQuiz4.7"
+format: pdf
+---
+
+```{r}
+library(tidyverse)
+library(tinytex)
+```
+
+```{r}
+UNLifeExpectancy <- read.csv(file.path(str_remove(getwd(), "/Class Notes"), "/Book Data/UNLifeExpectancy.csv"))
+```

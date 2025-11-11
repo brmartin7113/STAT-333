@@ -1,0 +1,263 @@
+---
+title: "Brock Martin Lab 4"
+output: pdf_document
+editor_options:
+  markdown:
+    wrap: 72
+    size: 12
+    font: "Times New Roman"
+---
+
+```{r include=FALSE}
+library(tidyverse)
+library(tinytex)
+library(MASS)
+library(slider)
+```
+
+# Memorandum
+
+I have been tasked in analyzing the Hong Kong Exchange market and being able to predict the exchange rates for the next five days. While not impossible, I am assuming that the next five days will be very similar with the days before them. Which is not a guarantee since the future has not happened yet. In this analysis, I will explain that utilizing a random walk model does a better job at predicting the Hong Kong exchange rates than a quadratic model.
+
+The initial random walk model from *R Code 03* uses the change in exchange rates from the entire collection of data. This allows the random walk to fairly predict a range exchange rates for the next five days. Which does not happen on day 729, but on 732 as the markets are closed on the weekends. The reason I say range of exchange rates is because it is impossible to predict a specific exchange rate in the future with random walk models. From *R Code 04*, we see that on the fifth day the predicted exchanges rates can be found between 7.8035 to 7.8242 95% of the time.
+
+Looking at the quadratic model from *R Code 05*. We see that predicting future exchange rates can be easily calculated with the formula. However, the formula only considers what happens from the current data and assumes all future data reflects the function. *R Figure 02* shows this well as the quadratic model overshoots the predicted exchange rate near the end of the collected data. This disparity will get worse the further out we look. Looking at the prediction interval for the quadratic model shows that the exchange rate on day five can be found between 7.8089 to 7.8358 95% of the time.
+
+While these models uses all of the data, their prediction powers cannot be compared to each other. So we need to validate their predictive powers. I choose to split the data between the 65% mark. Where the first 65% of dates are used for training and the rest in validation. Looking at *R Code 05*, the quadratic validation model in red way overshoots the actual exchange rates for most of the validation portion. While the random walk validation model in green lines up pretty well with the actual exchange rates. Though a very slight drift was introduced in this model as the actual validation exchange rates had a very marginal positive relationship as time increased. This is also shown when looking at the MSE for each of the validation models. With the random walk validation model having the least MSE than the quadratic validation model.
+
+Using the random walk model from the training/validation data, we can now predict the Hong Kong exchange rates for the next five days more accurately. The new five day prediction interval for the Hong Kong exchange rates on day five can be found between 7.8061 to 7.8225 95% of the time. This prediction interval for day five exchange rates is is tighter than the initial walk model.
+
+\newpage
+
+# Appendix
+
+## R Code 01
+
+```{r message=FALSE, warning=FALSE, results='hide'}
+#Importing the dataset
+HKEData <- read_csv(
+  file.path(
+    str_remove(
+      getwd(),
+      "/Class Notes"
+    ),
+    "Book Data/HKExchange.csv"
+  )
+)
+```
+
+## R Code 02
+
+```{r}
+#Data cleaning
+HKEData <- HKEData %>%
+  mutate(
+    DATE=as.Date(DATE, format="%d-%b-%y"),
+    TIME=as.numeric(DATE)-min(as.numeric(DATE))+1
+    )
+```
+
+## R Figure 01
+
+```{r}
+HKEData %>%
+  ggplot(aes(x=DATE, y=EXHKUS))+
+  geom_line()+
+  theme_bw()+
+  labs(title="Exchange Rates between Hong Kong and US",
+       x = "Date", 
+       y = "How many Hong Kong dollars are needed to get one US dollars")
+```
+
+## R Code 03
+
+```{r}
+#Random Walk Model
+y_vals <- HKEData$EXHKUS
+c_vals <- diff(y_vals)
+c_avg <- mean(c_vals)
+c_s <- sqrt(sum((c_vals-c_avg)^2)/(length(HKEData$TIME)-1))
+```
+
+## R Code 03 Assumptions
+
+$E(y_t)$ Does not depend on $t$.
+
+$\gamma(y_s,y_t)$ depends on $|s-t|$ only and where $s\not=t$.
+
+$c_t \sim N(0, {\sigma_w}^2)$
+
+## R Code 04
+
+```{r}
+#Prediction Interval for next 5 time steps using Random Walk
+c_predictions <- matrix(
+  nrow=5, ncol=2,
+  dimnames=list(
+    c(732:736),
+    c("2.5%", "97.5%")
+  )
+)
+for(i in 1:5){
+  c_predictions[i,1] <- y_vals[502]+i*c_avg-2*c_s*sqrt(i+2)
+  c_predictions[i,2] <- y_vals[502]+i*c_avg+2*c_s*sqrt(i+2)
+}
+c_predictions
+```
+
+## R Code 05
+
+```{r}
+#Quadratic Model
+quad <- lm(EXHKUS ~ TIME + I(TIME^2), data=HKEData)
+summary(quad)
+predict(quad,
+        as.data.frame(c(732:736), nm="TIME", row.names=c(732:736)),
+        interval="prediction", level=0.95)
+```
+
+## R Code 05 Formulaic
+
+$$
+y_t= \beta_0 + \beta_1 t + \beta_2 t^2 + \epsilon_t \\
+$$
+
+$$
+\epsilon_t \sim N(0, \sigma^2)
+$$
+
+## R Figure 02
+
+```{r}
+HKEData <- HKEData %>%
+  mutate(Fitted_Quad = predict(quad))
+HKEData %>%
+  ggplot(aes(x=DATE, y=EXHKUS))+
+  geom_line()+
+  geom_line(aes(y=Fitted_Quad, color="red"))+
+  theme_bw()+
+  labs(title="Quadratic Model on Hong Kong - US Exchange Rates",
+       x="DATE",
+       y="Exchange rate from Hong Kong dollars to US dollars")
+```
+
+## R Code 06
+
+```{r}
+#Building Training-Validation Datasets
+#65% Training, 35% Validation
+TrainingN <- round(length(HKEData$TIME)*0.65, 0)
+ValidationN <- length(HKEData$TIME)-TrainingN
+HKEDataTraining <- HKEData %>%
+  slice_head(n=TrainingN)
+HKEDataValidation <- HKEData %>%
+  slice_tail(n=ValidationN)
+```
+
+## R Code 07
+
+```{r}
+#Validating Random Walk Model
+set.seed(333)
+cTraining <- diff(HKEDataTraining$EXHKUS)
+cTraining_avg <- mean(cTraining)
+cTraining_s <- sd(cTraining)
+
+#Utilizing the graphic from R Figure 03, the validation portion does seem to trend upwards
+cPredicted <- rnorm(ValidationN, mean=cTraining_avg+0.0002, sd=cTraining_s)
+cFitted <- HKEData$EXHKUS[TrainingN]+cumsum(cPredicted)
+HKEDataValidation <- HKEDataValidation %>%
+  mutate(Fitted_RW=cFitted)
+cError <- HKEDataValidation$EXHKUS-cFitted
+paste("MSE:", sum(cError^2)/ValidationN)
+```
+
+## R Figure 03
+
+```{r}
+#Graphical Interpretation of the Random Walk Model Validation
+ggplot(data=HKEData, aes(x=DATE, y=EXHKUS))+
+  geom_line()+
+  geom_line(data=HKEDataTraining, aes(x=DATE, y=EXHKUS), colour="blue")+
+  geom_line(data=HKEDataValidation, aes(x=DATE, y=Fitted_RW), colour="red")+
+  labs(title="Random Walk Model Validation",
+       x="Date",
+       y="Exchange rate between Hong Kong dollars to US dollars",
+       caption="Black is the Regular Data, Blue is the Training Data, Red is the Validation Data")+
+  theme_bw()
+  
+```
+
+## R Code 08
+
+```{r}
+#Validating Quadratic Model
+quad_Training <- lm(EXHKUS ~ TIME + I(TIME^2), data=HKEDataTraining)
+ValidationTimes <- HKEDataValidation$TIME
+fittedValidation <- matrix(
+  c(
+    rep(1, times=ValidationN),
+    ValidationTimes,
+    ValidationTimes^2),
+  byrow=FALSE, nrow=ValidationN, ncol=3) %*% 
+  matrix(
+    coef(quad_Training),
+    byrow=TRUE, nrow=3, ncol=1)
+paste("MSE:",sum((HKEDataValidation$EXHKUS-fittedValidation)^2)/(ValidationN))
+```
+
+## R Figure 04
+
+```{r}
+#Graphical Interpretation of Quadratic Model Validation
+HKEDataTraining <- HKEDataTraining %>%
+  mutate(Fitted_Quad = predict(quad_Training))
+HKEDataValidation <- HKEDataValidation %>%
+  mutate(Fitted_Quad = fittedValidation)
+
+ggplot(data=HKEData, aes(x=DATE, y=EXHKUS))+
+  geom_line()+
+  geom_line(data=HKEDataTraining, aes(x=DATE, y=Fitted_Quad), colour="blue")+
+  geom_line(data=HKEDataValidation, aes(x=DATE, y=Fitted_Quad), colour="red")+
+  labs(title="Quadratic Model Validation",
+       x="Date",
+       y="Exchange rate between Hong Kong dollars to US dollars",
+       caption="Black is the Regular Data, Blue is the Training Data, Red is the Validation Data")+
+  theme_bw()
+```
+
+## R Code 09
+
+```{r}
+#Creating new prediction intervals from the Training Random Walk Model
+Predictions_RW <- matrix(
+  nrow=5, ncol=2,
+  dimnames=list(
+    c(732:736),
+    c("2.5%", "97.5%")
+  )
+)
+for(i in 1:5){
+  Predictions_RW[i,1] <- y_vals[502]+i*(cTraining_avg+0.0002)-2*(cTraining_s)*sqrt(i+2)
+  Predictions_RW[i,2] <- y_vals[502]+i*(cTraining_avg+0.0002)+2*(cTraining_s)*sqrt(i+2)
+}
+Predictions_RW
+```
+
+## R Figure 05
+
+```{r}
+#It's the final graphic *bah da dah bah, bah di da ba bah*
+ggplot(data=HKEData, aes(x=DATE, y=EXHKUS))+
+  geom_line()+
+  geom_line(data=HKEDataTraining, aes(x=DATE, y=EXHKUS), colour="blue")+
+  geom_line(data=HKEDataValidation, aes(x=DATE, y=Fitted_Quad), colour="red")+
+  geom_line(data=HKEDataValidation, aes(x=DATE, y=Fitted_RW), colour="green")+
+  labs(title="Final Graphic Visualization",
+       x="Date",
+       y="Exchange rate between Hong Kong dollars to US dollars",
+       caption="Black is the Regular Data, Blue is the Training Data,
+                Red is the Quad Validation Data, Green is the RW Validation Data")+
+  theme_bw()
+  
+```

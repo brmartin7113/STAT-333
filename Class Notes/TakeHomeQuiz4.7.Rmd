@@ -1,0 +1,111 @@
+---
+title: "TakeHomeQuiz4.7"
+output: pdf_document
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+```{r}
+library(tidyverse)
+library(tinytex)
+```
+
+### 4.7
+```{r}
+UNLifeExpectancy <- read.csv(file.path(str_remove(getwd(), "/Class Notes"), "/Book Data/UNLifeExpectancy.csv"))
+```
+
+```{r}
+UNLifeExpectancy <- UNLifeExpectancy %>%
+  mutate(LNHEALTH = log(PRIVATEHEALTH))
+```
+
+#### a.)
+
+$$H_O: \beta_{PUBLICEDUCATION}+\beta_{LNHEALTH}=0$$
+$$H_A: \beta_{PUBLICEDUCATION}+\beta_{LNHEALTH}\not=0$$
+
+If the partial F-test p-value is less than $\alpha=0.05$, then we reject the null hypothesis.
+
+```{r}
+UNLEregaF <- lm(LIFEEXP~FERTILITY+PUBLICEDUCATION+LNHEALTH, data=UNLifeExpectancy)
+UNLEregaR <- lm(LIFEEXP~FERTILITY, data=UNLifeExpectancy)
+SSEaF <- sum(residuals(UNLEregaF)^2)
+SSEaR <- sum(residuals(UNLEregaR)^2)
+s2aF <- SSEaF/df.residual(UNLEregaF)
+FRatioA <- ((SSEaR-SSEaF)/(df.residual(UNLEregaR)-df.residual(UNLEregaF)))/(SSEaF/df.residual(UNLEregaF))
+FRatioA
+1-pf(FRatioA, df.residual(UNLEregaR)-df.residual(UNLEregaF), df.residual(UNLEregaF))
+```
+
+Since the p-value from the partial F-test of 0.55 is greater than $\alpha=0.05$. We fail to reject the null hypothesis. This means that there is no statistically significant evidence that PUBLICEDUCATION and LNHEALTH are jointly significant in determining the life expectancy of a country.
+
+#### b.)
+
+```{r}
+UNLifeExpectancy %>%
+  ggplot(aes(x=REGION, y=LIFEEXP, group=REGION)) +
+  geom_boxplot() + 
+  theme_gray() +
+  labs(title="Boxplot of Region to Life Expectancy",
+       x="Region",
+       y="Life Expectancy")
+```
+
+From the box-plot above, we can see that different regions have their own distribution of life expectancy in their respective countries. However, Region 6 and 8 have medians very different from the other regions. Where their medians are not within the inter-quartile range of the other regions. In other words, it would be safe to say that the region specific means are not similar to each other.
+
+#### c.)
+
+$$H_O: \beta_{REGIONi}=0 \text{ for all i in REGION}$$
+$$H_A: \text{At least one }\beta_{REGIONi}\not=0$$
+If the F-test p-value is less than $\alpha=0.05$, then we reject the null hypothesis.
+
+```{r}
+UNLEregc <- lm(LIFEEXP~as.factor(REGION), data=UNLifeExpectancy)
+UNLEregcN <- lm(LIFEEXP~0, data=UNLifeExpectancy)
+anova(UNLEregcN, UNLEregc)
+```
+
+Since the F-test p-value of essentially 0 is less than $\alpha=0.05$. We reject the null hypothesis. This means there is statistically significant evidence that at least one region is significant in computing a country's life expectancy.
+
+#### d.)
+```{r}
+UNLEregd <- lm(LIFEEXP~FERTILITY+PUBLICEDUCATION+LNHEALTH+as.factor(REGION), data=UNLifeExpectancy)
+```
+
+##### i.)
+```{r}
+summary(UNLEregd)
+CMatdi1 <- matrix(c(1, 2, 5, 1, rep(0,times=7)), nrow=1)
+CMatdi2 <- matrix(c(1, 2, 5, 1, rep(0, times = 4), 1, 0, 0), nrow=1)
+betaHatd <- coef(UNLEregd)
+CMatdi1 %*% betaHatd
+CMatdi2 %*% betaHatd
+```
+The estimated life expectancy for an Arab state with a fertility rate of 2%, public education spending at 5%, and a ln(Health Expenditure) of 1 is ~75 years.
+
+The estimated life expectancy for a sub-Saharan African country with a fertility rate of 2%, public education spending at 5%, and a ln(Health Expenditure) of 1 is ~61 years.
+
+##### ii.)
+
+```{r}
+UNLEregdii <- lm(LIFEEXP~0+PUBLICEDUCATION+LNHEALTH+as.factor(REGION), data=UNLifeExpectancy)
+summary(UNLEregdii)
+CMatdii <- matrix(c(0, 0, 1, rep(0, times=4), -1, 0, 0), nrow=10)
+Xdii <- model.matrix(UNLEregdii)
+s2d <- sum(residuals(UNLEregdii)^2)/df.residual(UNLEregdii)
+se <- sqrt(s2d*t(CMatdii)%*%solve(t(Xdii)%*%Xdii)%*%CMatdii)
+
+t(CMatdii)%*%coef(UNLEregdii)+c(-1,1)*qt(0.975, df.residual(UNLEregdii))*se
+```
+
+We are 95% confident that the difference in life expectancy between an Arab State and a Sub-Saharan African Country can be found between 15.4 years and 22.9 years.
+
+##### iii.)
+```{r}
+CMatdiii <- c(rep(0, times=8), 1, 0 ,-1)
+abs(CMatdiii %*% coef(UNLEregd))
+```
+
+The point estimate in the difference between a Sub-Saharan African Country and a high-income OECD Country is ~18.2 years.

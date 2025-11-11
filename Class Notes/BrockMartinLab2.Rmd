@@ -1,0 +1,316 @@
+---
+title: "BrockMartinLab2"
+output: pdf_document
+editor_options:
+  markdown:
+    wrap: 72
+    size: 12
+    font: "Times New Roman"
+---
+
+```{r include=FALSE}
+library(tidyverse)
+library(GGally)
+library(tinytex)
+library(MASS)
+library(stats)
+library(car)
+library(emmeans)
+```
+
+# Memorandum
+
+The Minnesota ROTC program has contacted us in determining the equitability of their obstacle course. Their main concern is regarding that the Cadets' heights are making the obstacle course either easier or harder to complete. This memorandum will address the ROTC's concerns for the obstacle course as well as looking into other factors that are causing difficulties completing the obstacle course.
+
+*Figures 01, 02, and 03* shows the relationship that height, weight, and completion time have with each other. Addressing the main concern, it does appear that shorter Cadets have a more difficult time completing the course than taller Cadets. However, when considering the Cadets' gender the results are a lot more clearer. *Figures 04, 05, and 06* are the same scatter-plots as *Figures 01, 02, and 03* but grouped by gender. By grouping the Cadets' gender we see that a lot of female Cadets are experiencing difficulties completing the obstacle course than the male Cadets. More specifically, taller female Cadets are able to complete the course faster than shorter female Cadets can. While shorter male Cadets can complete the course at a similar pace than the taller male Cadets can. Looking at *R Code 08, 09, and 10*, the analysis of four distinct groups of Cadets based on gender and height. We do see that differences in heights are significant for both male and female Cadets. From the perspectives of the shorter Cadets, there is significant evidence that they complete the obstacle course slower than their fellow counter-parts. However, the slowest predicted difference in heights for male Cadets (12.29 seconds slower) is nearly twice as fast than the fastest predicted difference in heights for female Cadets (23.81 seconds slower) from *R Code 10*. So it does appear that taller Cadets, regardless of gender have an advantage in completing the obstacle course over the smaller Cadets. 
+
+Recommendations that the ROTC can utilize in creating an equitable obstacle course is to gather more data from the course itself. We only have the total time it took Cadets to complete the entire course, not where the Cadets' are having a particularly difficult time at. More info like type of obstacle, type of material or terrain used, and Cadet's time to complete that part of the obstacle course are crucial elements to be considered during this analysis. Following along with shorter Cadets are experiencing more difficulties in completing the course compared to their fellow Cadets. The Minnesota ROTC has a lot to work with in improving their obstacle course to be more equitable to all Cadets.
+
+In short, the ROTC should look more into the obstacle course they use to highlight key areas where shorter Cadets are struggling at. Then modify those problematic areas in a way to not penalize the shorter Cadets and ensure that part is not too easy for the other Cadets to pass through.
+
+\newpage
+
+# Appendix
+
+## R Code 01
+
+```{r message=FALSE, warning=FALSE, results='hide'}
+#Getting the data into the document
+APFT <- read_csv(file.path(str_remove(getwd(), "/Class Notes"), "Book Data/APFT.csv"))
+```
+
+## R Code 02
+
+```{r}
+#Defining certain numerical variables into categorical. This pertains to the CS variable.
+APFT <- APFT %>%
+  mutate(CS = as.factor(CS))
+```
+
+## Figure 01
+
+```{r}
+#Generation of the scatter plot between height and course completion time
+APFT %>%
+  ggplot(aes(x=height, y=IOCT_Time))+
+  geom_point()+
+  labs(
+    title="Scatter-plot between height and IOCT time",
+    x="Heights of Cadets in inches",
+    y="Seconds needed to complete the obstacle course"
+  )+
+  theme_minimal()
+```
+
+## Figure 02
+
+```{r}
+#Generation of the scatter plot between height and weight
+APFT %>%
+  ggplot(aes(x=height, y=weight))+
+  geom_point()+
+  labs(
+    title="Scatter-plot between heights and weights of Cadets",
+    x="Heights of Cadets in inches",
+    y="Weights of Cadets in pounds"
+  )+
+  theme_minimal()
+```
+
+## Figure 03
+
+```{r}
+#Generation of the scatter plot between weight and course completion time
+APFT %>%
+  ggplot(aes(x=weight, y=IOCT_Time))+
+  geom_point()+
+  labs(
+    title="Scatter-plot between weight and IOCT Time",
+    x="Weights of Cadets in pounds",
+    y="Seconds needed to complete the obstacle course"
+  )+
+  theme_minimal()
+```
+
+## Figure 04
+
+```{r}
+#Generation of the scatter plot between height and course completion time grouped by gender
+APFT %>%
+  group_by(sex) %>%
+  ggplot(aes(x=height, y=IOCT_Time, col=sex))+
+  geom_point()+
+  labs(
+    title="Scatter-plot between height and IOCT time grouped by gender",
+    x="Heights of Cadets in inches",
+    y="Seconds needed to complete the obstacle course"
+  )+
+  theme_minimal()+
+  geom_smooth(method="lm", se=FALSE)
+```
+
+Looking at *Figure 04*, we see that there is a difference of slopes between height of Cadets and obstacle course completion times based on their gender.
+
+## Figure 05
+```{r}
+#Generation of the scatter plot between height and weight grouped by gender
+APFT %>%
+  group_by(sex) %>%
+  ggplot(aes(x=height, y=weight, col=sex))+
+  geom_point()+
+  labs(
+    title="Scatter-plot between heights and weights of Cadets grouped by gender",
+    x="Heights of Cadets in inches",
+    y="Weights of Cadets in pounds"
+  )+
+  theme_minimal()+
+  geom_smooth(method="lm", se=FALSE)
+```
+
+From *Figure 05*, we see that there is not much of a difference between the height and weights of the Cadets based on their Gender.
+
+## Figure 06
+
+```{r}
+#Generation of the scatter plot between weight and course completion time grouped by gender
+APFT %>%
+  group_by(sex) %>%
+  ggplot(aes(x=weight, y=IOCT_Time, col=sex))+
+  geom_point()+
+  labs(
+    title="Scatter-plot between weight and IOCT Time grouped by gender",
+    x="Weights of Cadets in pounds",
+    y="Seconds needed to complete the obstacle course"
+  )+
+  theme_minimal()+
+  geom_smooth(method="lm", se=FALSE)
+```
+From *Figure 06*, we see a difference of slopes between the weights of Cadets and their obstacle course completion time based on their gender.
+
+## R Code 03
+
+```{r}
+#Creating a full model
+APFTReg1 <- lm(IOCT_Time ~ ., data=APFT)
+summary(APFTReg1)
+```
+\section{R Code 03 formulaic}
+$$y_i= \beta_0+\beta_1x_{1i}+\beta_2x_{2i}+\beta_3x_{3i}+\beta_4x_{4i}+\beta_5x_{5i}+\beta_6x_{6i}+\beta_7x_{7i}+\beta_8x_{8i}+\epsilon_i$$
+\begin{align*}
+y_i &= \text{Obstacle course time for ith Cadet}\\
+x_{1i} &= \text{ith Cadet is a male}\\
+x_{2i} &= \text{height of ith Cadet}\\
+x_{3i} &= \text{weight of ith Cadet}\\
+x_{4i} &= \text{score for push ups completed in 2 minutes of ith Cadet}\\
+x_{5i} &= \text{score for sit ups completed in 2 minutes of ith Cadet}\\
+x_{6i} &= \text{score for ith Cadet time to run two miles}\\
+x_{7i} &= \text{ith Cadet was a recruited athlete after highschool}\\
+x_{8i} &= \text{ith Cadet combined scores for push ups, sit ups, and running}\\
+\epsilon_i &\sim N(0, \sigma^2)
+\end{align*}
+The reason as to why the APFT score coefficients show up as NA, is because $APFT_i= puscore_i+suscore_i+runscore_i$
+
+## R Code 04
+
+```{r}
+#Full model without APFT_Score
+APFTReg2 <- lm(IOCT_Time ~ .-APFT_Score, data=APFT)
+summary(APFTReg2)
+```
+\section{R Code 04 formulaic}
+$$y_i= \beta_0+\beta_1x_{1i}+\beta_2x_{2i}+\beta_3x_{3i}+\beta_4x_{4i}+\beta_5x_{5i}+\beta_6x_{6i}+\beta_7x_{7i}+\epsilon_i$$
+\begin{align*}
+y_i &= \text{Obstacle course time for ith Cadet}\\
+x_{1i} &= \text{ith Cadet is a male}\\
+x_{2i} &= \text{height of ith Cadet}\\
+x_{3i} &= \text{weight of ith Cadet}\\
+x_{4i} &= \text{score for push ups completed in 2 minutes of ith Cadet}\\
+x_{5i} &= \text{score for sit ups completed in 2 minutes of ith Cadet}\\
+x_{6i} &= \text{score for ith Cadet time to run two miles}\\
+x_{7i} &= \text{ith Cadet was a recruited athlete after highschool}\\
+\epsilon_i &\sim N(0, \sigma^2)
+\end{align*}
+
+This model is still too large to do any statistical interpretations as the model is over-fit to explain a Cadet's completion time of the obstacle course. However, looking at *figures 04, 05, and 06* gives us significant evidence of what our final model should be.
+
+## R Code 05
+
+```{r}
+#Generating the final model with interaction terms between height-sex, weight-sex, and height-weight
+APFTRegF <- lm(IOCT_Time~(height+weight+sex)^2, data=APFT)
+summary(APFTRegF)
+anova(APFTRegF, APFTReg2)
+```
+
+\section{R Code 05 formulaic}
+$$y_i = \beta_0+\beta_1x_{1i}+\beta_2x_{2i}+\beta_3x_{3i}+\beta_4x_{1i}x_{2i}+\beta_5x_{1i}x{3i}+\beta_6x_{2i}x_{3i}+\epsilon_i$$
+\begin{align*}
+y_i &= \text{Obstacle course time for ith Cadet} \\
+x_{1i} &= \text{height of ith Cadet}\\
+x_{2i} &= \text{weight of ith Cadet}\\
+x_{3i} &= \text{ith Cadet is a male}\\
+\epsilon_i &\sim N(0, \sigma^2)
+\end{align*}
+
+From the one-way analysis of variance, we see that the new model does a better job at explaining the variation of the model than the old full model. This means that the new interaction model does a better job at fitting the data.
+
+## Figures 07-10
+
+```{r}
+plot(APFTRegF)
+```
+
+From the above figures, we see that our model does have one outliers. Specifically at data point 113 via Cook's Distance. 
+
+## R Code 06
+
+```{r}
+#Removing the outlier at the 113th row and regenerating the final model
+APFT$IOCT_Time[113]
+APFT2 <- APFT %>%
+  filter(IOCT_Time<600)
+APFTRegF2 <- lm(IOCT_Time~(height+weight+sex)^2, data=APFT2)
+summary(APFTRegF2)
+```
+
+\section{R Code 06 formulaic}
+$$
+\widehat{y_{Femalei}}=288.6171-3.7520x_{Heighti}+2.7918x_{Weighti}-0.0193x_{Heighti}*x_{Weighti}
+$$
+\newline
+$$
+\widehat{y_{Malei}}=-17.5371+1.8825x_{Heighti}+1.7693x_{Weighti}-0.0193x_{Heighti}*x_{Weighti}
+$$
+
+## Figures 11-14
+
+```{r}
+plot(APFTRegF2)
+```
+
+Looking at *Figure 11-14*, we see that removing the outlier led to a better fit overall. The Q-Q plot on *Figure 12* right tail shrunk down more than *Figure 08*. While *Figures 07 & 11* have some fanning out, it is not unexpected. We are comparing between two distinct groups (Male/Female) which have different variances that can be shown from *Figures 04-06*.
+
+## R Code 07
+
+Point estimates of obstacle course times for both Male and Female Cadets weighing 160 pounds and are 68 inches high are:
+```{r}
+#Computing the point estimates in course completion times between similar male and female Cadets
+PEMale <- c(1, 68, 160, 1, 160*68, 68, 160)
+PEFemale <- c(1, 68, 160, 0, 160*68, 0, 0)
+
+t(PEMale) %*% coef(APFTRegF2)
+t(PEFemale) %*% coef(APFTRegF2)
+```
+
+We can predict that a male Cadet that is 68 inches tall and weighs 160 pounds to complete the course in 178.30 seconds while the similar female Cadet completes the course in 269.74 seconds.
+
+## R Code 08
+
+Confidence intervals for both male and female Cadets weighing 160 pounds and are 68 inches tall are:
+```{r warning=FALSE}
+#Generating the confidence intervals in course completion times between similar male and female Cadets
+APFTRegF2Cov <- vcov(APFTRegF2)
+seMale <- sqrt(t(PEMale)%*%APFTRegF2Cov%*%PEMale)
+seFemale <- sqrt(t(PEFemale)%*%APFTRegF2Cov%*%PEFemale)
+
+t(PEMale) %*% coef(APFTRegF2) + c(-1, 1)*qt(0.975, df.residual(APFTRegF2))*seMale
+t(PEFemale) %*% coef(APFTRegF2) + c(-1, 1)*qt(0.975, df.residual(APFTRegF2))*seFemale
+```
+
+We are 95% confident that a male Cadet that is 68 inches tall and weighs 160 pounds can complete the obstacle course between 172.43 seconds to 184.17 seconds.
+
+We are 95% confident that a female Cadet that is 68 inches tall and weighs 160 pounds can complete the obstacle course between 259.31 seconds to 280.17 seconds.
+
+## R Code 09
+```{r}
+#Looking at the range of heights between male and female Cadets
+APFT2 %>%
+  group_by(sex) %>%
+  summarize(Minimum = min(height), Maximum = max(height))
+```
+
+## R Code 10
+```{r warning=FALSE}
+#Looking at the difference in effect of height for similar male and female Cadets
+
+PEMale2 <- c(1, 63, 160, 1, 63*160, 63, 160) - PEMale#Male Cadets 5 inches shorter
+PEFemale2 <- c(1, 63, 160, 0, 63*160, 0, 0) - PEFemale#Female Cadets 5 inches shorter
+
+#Point estimates for Cadets 5 inches shorter
+t(PEMale2) %*% coef(APFTRegF2)
+t(PEFemale2) %*% coef(APFTRegF2)
+
+#Confidence intervals for Cadets 5 inches shorter
+t(PEMale2) %*% coef(APFTRegF2) + c(-1, 1)*qt(0.975, df.residual(APFTRegF2))*seMale
+t(PEFemale2) %*% coef(APFTRegF2) + c(-1, 1)*qt(0.975, df.residual(APFTRegF2))*seFemale
+```
+
+## R Code 10 Interpretations:
+
+We can expect a Male Cadet that is 63 inches tall and weighs 160 pounds to complete the obstacle course 6.42 seconds slower than the Male Cadet that is 68 inches tall and weighs 160 pounds.
+
+We can expect a Female Cadet that is 63 inches tall and weighs 160 pounds to complete the obstacle course 34.23 seconds slower than the Female Cadet that is 68 inches tall and weighs 160 pounds.
+
+We are 95% confident that a Male Cadet that is 63 inches tall and weighs 160 pounds to complete the obstacle course between 0.54 to 12.29 seconds slower than the Male Cadet who is 68 inches tall and weighs 160 pounds.
+
+We are 95% confident that a Female Cadet that is 63 inches tall and weighs 160 pounds to complete the obstacle course between 23.81 to 44.66 seconds slower than the Female Cadet who is 68 inches tall and weighs 160 pounds.

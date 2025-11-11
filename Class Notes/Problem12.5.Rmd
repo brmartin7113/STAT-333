@@ -1,0 +1,117 @@
+---
+title: "Problem12.5"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(MASS)
+```
+
+```{r}
+HealthExpend <- read_csv(file.path(str_remove(getwd(), "Class Notes"), "Book Data/HealthExpend.csv"))
+```
+
+### a.)
+```{r}
+HealthExpend %>%
+  summarise(n = length(COUNTOP),
+            Min=summary(COUNTOP)[1],
+            Q1=summary(COUNTOP)[2],
+            Med=summary(COUNTOP)[3],
+            Q3=summary(COUNTOP)[5],
+            Max=summary(COUNTOP)[6],
+            Avg=mean(COUNTOP),
+            s=sd(COUNTOP))
+HealthExpend %>%
+  ggplot(aes(x=COUNTOP))+
+  geom_histogram()
+```
+
+### b.)
+```{r}
+HealthExpend <- HealthExpend %>%
+  mutate(as.factor(GENDER), as.factor(MNHPOOR), as.factor(ANYLIMIT), as.factor(insure))
+
+HealthExpend %>%
+  group_by(GENDER) %>%
+  summarize(mean=mean(COUNTOP))
+HealthExpend %>%
+  group_by(RACE) %>%
+  summarize(mean=mean(COUNTOP))
+HealthExpend %>%
+  group_by(REGION) %>%
+  summarize(mean=mean(COUNTOP))
+HealthExpend %>%
+  group_by(EDUC) %>%
+  summarize(mean=mean(COUNTOP))
+HealthExpend %>%
+  group_by(PHSTAT) %>%
+  summarize(mean=mean(COUNTOP))
+HealthExpend %>%
+  group_by(MNHPOOR) %>%
+  summarize(mean=mean(COUNTOP))
+HealthExpend %>%
+  group_by(ANYLIMIT) %>%
+  summarize(mean=mean(COUNTOP))
+HealthExpend %>%
+  group_by(INCOME) %>%
+  summarize(mean=mean(COUNTOP))
+HealthExpend %>%
+  group_by(insure) %>%
+  summarize(mean=mean(COUNTOP))
+```
+
+```{r}
+nullPois <- glm(COUNTOP~1, data=HealthExpend, family=poisson)
+summary(nullPois)
+1-pchisq(deviance(nullPois), df.residual(nullPois))
+deviance(nullPois)/df.residual(nullPois)
+AIC(nullPois)
+```
+### d
+```{r}
+Pois <- glm(COUNTOP~GENDER+RACE+REGION+EDUC+PHSTAT+MNHPOOR+ANYLIMIT+INCOME+insure, data=HealthExpend, family=poisson)
+summary(Pois)
+exp(0.415673)
+```
+
+#### i.)
+Every variable but MNHPOOR were statistically Significant
+
+#### ii.)
+If the gender variable becomes one and holding all other covariates constant. We can expect the lambda to increase by 1.51539
+
+#### iii.)
+```{r}
+1-pchisq(deviance(Pois), df.residual(Pois))
+deviance(Pois)/df.residual(Pois)
+AIC(Pois)
+```
+
+### e.)
+```{r}
+NB <- glm.nb(COUNTOP~GENDER+RACE+REGION+EDUC+PHSTAT+MNHPOOR+ANYLIMIT+INCOME+insure, data=HealthExpend)
+summary(NB)
+```
+
+#### i.)
+The only non-significant variable in the Negative Binomial Model appears to be Region North East, MIncome, NPoor, and Poor.
+
+#### ii.)
+```{r}
+1-pchisq(deviance(NB), df.residual(NB))
+deviance(NB)/df.residual(NB)
+AIC(NB)
+```
+
+#### iii.)
+```{r}
+NB2 <- glm.nb(COUNTOP~GENDER+RACE+REGION+EDUC+PHSTAT+MNHPOOR+ANYLIMIT+insure, data=HealthExpend)
+anova(NB, NB2)
+```
+
+```{r}
+1-pchisq(18.95312, 4)
+```
+

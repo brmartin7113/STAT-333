@@ -1,0 +1,109 @@
+---
+title: "Problem5.4"
+output: html_document
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+```{r}
+library(tidyverse)
+library(GGally)
+library(car)
+```
+
+```{r}
+TermData <- read.csv(file.path(str_remove(getwd(), "/Class Notes"), "/Book Data/TermLife.csv"))
+TermData <- TermData %>%
+  filter(FACE > 0) %>%
+  mutate(LNFACE = log(FACE), LNINCOME = log(INCOME))
+```
+
+### a.)
+
+```{r}
+TermRega <- lm(LNFACE ~ LNINCOME+EDUCATION+NUMHH+as.factor(MARSTAT)+AGE+as.factor(GENDER), data=TermData)
+vif(TermRega)
+GGPairData <- TermData %>%
+  mutate(GENDER = as.factor(GENDER), MARSTAT = as.factor(MARSTAT))
+ggpairs(GGPairData[,c("LNINCOME","EDUCATION","NUMHH","MARSTAT","AGE","GENDER")], lower=list(continuous = "blank"))
+```
+
+#### i.)
+
+Collinearity is defined as one explanatory variable being explained by
+some linear combination of other variables. A variance inflation factor
+(VIF) is a standardized method in determining which explanatory
+variables' variances effect each other. An explanatory variable with a
+high VIF is considered to be collinear with the other variables.
+
+#### ii.)
+
+A large VIF is considered to be any number greater than 10 usually.
+
+#### iii.)
+
+If some explanatory variable does have a large VIF, it's not the end of
+the world. One option to deal with this problem is to scale that
+variable and repeat the model generation.
+
+#### iv.)
+
+Seeing that the VIFs for all explanatory variables are way less than 10. I do believe that collinearity is not an issue with this particular fitted model.
+
+### b.)
+
+```{r}
+X <- model.matrix(TermRega)
+H <- X%*%solve(t(X)%*%X)%*%t(X)
+leverage <- diag(H)
+hBar <- mean(leverage)
+hBar
+leverage[which(leverage>3*hBar)]
+```
+
+#### i.)
+
+In data analysis, we are using all of the data we have to generate regression models to predict some arbitrary thing. However, there exists some point(s) in the data that does not line up with the rest of the data. These points can leverage the creation of the regression to make the predictions less accurate overall.
+
+#### ii.)
+
+To find the leverage values, we produce the Hat matrix via $X(X'X)^{-1}X'$ and take the diagonals from the Hat matrix. To determine which leverage values are too extreme, we check if it is three times greater than the mean of all leverage values. When applying this rule for the current leverage values, we see that points 5, 11, 13, 21, 41, 52, 95, 102, 127, 177, 197, 206, 217, 223, 230, 232, and 257 all have high leverages.
+
+#### iii.)
+
+If we were to change our predictor from LNFACE to FACE. Then based on our previous leverage values from LNFACE. We can expect the leverage values for FACE to increase by a factor of e.
+
+### c.)
+
+```{r}
+plot(TermRega)
+```
+
+#### i.)
+
+When we create a residuals vs. fitted values plot. We hope to see if there are no relationship between the two. As in no fanning out or another linear relationship can be shown between the two.
+After looking at the plot, we can see that there does not seem to be a relationship between residuals and fitted values.
+
+#### ii.)
+
+When we create a Q-Q plot of residuals. We want to see if the residuals themselves follow some normal distribution. There does appear to be an anomoly at the left tail of the Q-Q plot as there are multiple gaps in the tail.
+
+#### iii.)
+
+When we create a residuals vs. leverages plot. We hope to determine if any of the high-leverage points are outliers. Since the residuals vs. leverage plot shows us that all values fit within the significant Cook's distance. We can say that there are no outliers in the data set.
+
+### d.)
+
+#### i.)
+
+A stepwise regression will attempt to find the best model through
+recursively adding or removing explanatory variables until some model is
+found to be the best fit through this method.
+
+#### ii.)
+
+There are some drawbacks to these stepwise regression process. One of
+them is that it will never consider all the combinations of explanatory
+variables. Which could lead to the process not finding the best model
+and instead pick a slightly worse one. Another drawback is that these processes will not consider nonlinear relationships between the explanatory variables unless specified to.
